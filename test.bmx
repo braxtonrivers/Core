@@ -8,12 +8,12 @@ Global mainwin:TCoreWindow=CoreCreateWindow("Core Window Test",200,100,800,600,N
 CoreWindowSetColor mainwin,34,34,35,True
 CoreWindowSetCallback(mainwin,MainWindowCallback)
 
-Global subwin:TCoreWindow=CoreCreateWindow("Subwindow",40,40,CoreWindowClientWidth(mainwin)-200,CoreWindowClientHeight(mainwin)-60,mainwin,CORE_WINDOW_PANEL)
-CoreWindowSetColor subwin,0,0,0,True
+'Global subwin:TCoreWindow=CoreCreateWindow("Subwindow",40,40,CoreWindowClientWidth(mainwin)-200,CoreWindowClientHeight(mainwin)-60,mainwin,CORE_WINDOW_PANEL)
+'CoreWindowSetColor subwin,0,0,0,True
 
-Global subwin2:TCoreWindow=CoreCreateWindow("Subwindow 2",50,50,CoreWindowClientWidth(subwin)-100,CoreWindowClientHeight(subwin)-100,subwin,CORE_WINDOW_PANEL)
-CoreWindowSetColor subwin2,35,35,35,True
-CoreWindowSetCallback(subwin2,SubWindowCallback)
+'Global subwin2:TCoreWindow=CoreCreateWindow("Subwindow 2",50,50,CoreWindowClientWidth(subwin)-100,CoreWindowClientHeight(subwin)-100,subwin,CORE_WINDOW_PANEL)
+'CoreWindowSetColor subwin2,35,35,35,True
+'CoreWindowSetCallback(subwin2,SubWindowCallback)
 
 'Global win2:TCoreWindow=CoreCreateWindow("Window 2",50,50,400,380,mainwin,CORE_WINDOW_DEFAULT)
 'CoreWindowSetColor win2,35,35,35,True
@@ -33,8 +33,8 @@ Function MainWindowCallback(win:TCoreWindow, id:Int, x:Int, y:Int, width:Int, he
 		CoreWindowClear(win)
 	Case CORE_EVENT_WINDOW_SIZE
 		If win=mainwin
-			CoreWindowSetShape subwin,40,40,CoreWindowClientWidth(win)-200,CoreWindowClientHeight(win)-60
-			CoreWindowSetShape subwin2,50,50,CoreWindowClientWidth(subwin)-100,CoreWindowClientHeight(subwin)-100
+			'CoreWindowSetShape subwin,40,40,CoreWindowClientWidth(win)-200,CoreWindowClientHeight(win)-60
+			'CoreWindowSetShape subwin2,50,50,CoreWindowClientWidth(subwin)-100,CoreWindowClientHeight(subwin)-100
 		EndIf
 	EndSelect
 EndFunction
