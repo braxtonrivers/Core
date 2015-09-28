@@ -1,6 +1,6 @@
 SuperStrict
 
-Framework brl.systemdefault
+'Framework brl.systemdefault BMXNG module
 Import brl.eventqueue
 Import "Core.bmx"
 
