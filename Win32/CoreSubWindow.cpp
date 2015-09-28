@@ -1,12 +1,10 @@
-#include "Core.h"
+#include "..\Core.h"
 
 bool CoreSubWindow::Initialize(char* title, int x, int y, int width, int height, CoreWindow* parent, int style)
 {
 	if (hwnd) return false;
 	if (parent==NULL) return false;
-	
-	issubwindow = true;
-	
+		
 	SetText(title);
 	
 	//Create window
@@ -14,17 +12,14 @@ bool CoreSubWindow::Initialize(char* title, int x, int y, int width, int height,
 	
 	if (hwnd==NULL) return false;
 	SetWindowLongA(hwnd,-10,NULL);
-		
-	GetWindowRect(hwnd,&rect);
-    MapWindowPoints(HWND_DESKTOP, GetParent(hwnd), (LPPOINT) &rect, 2);	
-	GetClientRect(hwnd,&clientrect);
-	
-	SetWindowLongPtrA(hwnd,GWLP_USERDATA,(LONG_PTR)this);
-	
+			
 	this->parent = parent;
 	parent->child = this;
-	
 	hdc = GetDC(hwnd);
+	
+	UpdateCoords();
+
+	SetWindowLongPtrA(hwnd,GWLP_USERDATA,(LONG_PTR)this);
 	return true;
 }
 

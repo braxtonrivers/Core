@@ -1,7 +1,5 @@
 #include "Core.h"
 
-bool WindowClassInitialized=false;
-
 extern "C"
 {
 	void CoreWindowSetShape(CoreWindow* window, int x, int y, int width, int height);
@@ -14,11 +12,11 @@ extern "C"
 	void CoreWindowDrawRect(CoreWindow* win, int x, int y, int width, int height);
 	void CoreWindowDrawText(CoreWindow* win, char* text, int x, int y, int width, int height, int style);
 	CoreWindow* CoreCreateWindow(char* title, int x, int y, int width, int height, CoreWindow* parent, int style);
-	CoreSubWindow* CoreCreateSubWindow(char* title, int x, int y, int width, int height, CoreWindow* parent, int style);
+	//CoreSubWindow* CoreCreateSubWindow(char* title, int x, int y, int width, int height, CoreWindow* parent, int style);
 	void CoreWindowClear(CoreWindow* win);
 	void CoreWindowSetText(CoreWindow* win, char* text);
-	void CoreWindowSetCallback(CoreWindow* win, void (*Callback)(CoreWindow*,int,int,int) );
-	HWND CoreWindowGetHandle(CoreWindow* win);
+	void CoreWindowSetCallback(CoreWindow* win, void (*Callback)(CoreWindow*,int,int,int,int,int) );
+	void* CoreWindowGetHandle(CoreWindow* win);
 	void CoreWindowSetColor(CoreWindow* win, int r, int g, int b, int bg);
 	int CoreWindowGetX(CoreWindow* win);
 	int CoreWindowGetY(CoreWindow* win);
@@ -83,14 +81,14 @@ void CoreWindowSetText(CoreWindow* win, char* text)
 	win->SetText(text);
 }
 
-void CoreWindowSetCallback( CoreWindow* win, void (*Callback)(CoreWindow*,int,int,int) )
+void CoreWindowSetCallback( CoreWindow* win, void (*Callback)(CoreWindow*,int,int,int,int,int) )
 {
 	win->Callback = Callback;
 }
 
-HWND CoreWindowGetHandle(CoreWindow* win)
+void* CoreWindowGetHandle(CoreWindow* win)
 {
-	return win->GetHandle();
+	return (void*)win->GetHandle();
 }
 
 void CoreWindowSetColor(CoreWindow* win, int r, int g, int b, int bg)
@@ -142,6 +140,7 @@ CoreWindow* CoreCreateWindow(char* title, int x, int y, int width, int height, C
 	}
 }
 
+/*
 CoreSubWindow* CoreCreateSubWindow(char* title, int x, int y, int width, int height, CoreWindow* parent, int style)
 {
 	CoreSubWindow* win=new CoreSubWindow;
@@ -155,3 +154,4 @@ CoreSubWindow* CoreCreateSubWindow(char* title, int x, int y, int width, int hei
 		return NULL;
 	}
 }
+*/

@@ -1,4 +1,4 @@
-#include "Core.h"
+#include "..\Core.h"
 
 bool CoreWindow::WindowClassInitialized=false;
 
@@ -11,6 +11,7 @@ const int CORE_WINDOW_RESIZABLE=2;
 const int CORE_WINDOW_TOOL=4;
 const int CORE_WINDOW_HIDDEN=8;
 const int CORE_WINDOW_ACCEPTFILES=16;
+const int CORE_WINDOW_PANEL=32;
 
 const int CORE_EVENT_WINDOW_PAINT=1;
 const int CORE_EVENT_WINDOW_CLOSE=2;
@@ -18,11 +19,11 @@ const int CORE_EVENT_WINDOW_SIZE=4;
 
 CoreWindow::CoreWindow()
 {
+	style = 0;
 	clipmode=false;
-
-	issubwindow = false;
+	
 	Callback = NULL;
-
+	
 	hrgn = NULL;
 	hwnd = NULL;
 	hdc = NULL;
@@ -107,58 +108,85 @@ int CoreWindow::ClientHeight()
 bool CoreWindow::Initialize(char* title, int x, int y, int width, int height, CoreWindow* parent, int style)
 {
 	if (hwnd) return false;
-
 	InitializeWindowClass();
 	
-	//style = 2;//+2;//+8+16;
+	this->style=style;
+	SetText(title);
+	char* windowtext = title;
 	
-	int wstyle = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-	int xstyle = 0;//CS_HREDRAW | CS_VREDRAW;// | WS_EX_DLGMODALFRAME;
+	HWND parenthwnd = NULL;
+	if (parent!=NULL) parenthwnd = parent->hwnd;
 	
-	if (style & CORE_WINDOW_TITLEBAR)
-	{
-		wstyle |= WS_CAPTION | WS_SYSMENU;
+	int wstyle = 0;
+	int xstyle = 0;
+	
+	if (style & CORE_WINDOW_PANEL)
+	{		
+		if (parent==NULL) return false;		
+		wstyle = WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS;
 	}
 	else
 	{
-		wstyle |= WS_POPUPWINDOW;
+		wstyle = WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+		xstyle = CS_HREDRAW | CS_VREDRAW;// | WS_EX_DLGMODALFRAME;
+		if (style & CORE_WINDOW_TITLEBAR)
+		{
+			wstyle |= WS_CAPTION | WS_SYSMENU;
+		}
+		else
+		{
+			wstyle |= WS_POPUPWINDOW;
+		}
+		if (style & CORE_WINDOW_RESIZABLE) wstyle |= WS_MAXIMIZEBOX | WS_MINIMIZEBOX |  WS_THICKFRAME;
+		if (style & CORE_WINDOW_TOOL) xstyle |= WS_EX_TOOLWINDOW;// | WS_POPUPWINDOW | ~WS_THICKFRAME;
 	}
-	if (style & CORE_WINDOW_RESIZABLE) wstyle |= WS_MAXIMIZEBOX | WS_MINIMIZEBOX |  WS_THICKFRAME;
-	if (style & CORE_WINDOW_TOOL) xstyle |= WS_EX_TOOLWINDOW;// | WS_POPUPWINDOW | ~WS_THICKFRAME;
 	
-	SetText(title);
+	hwnd = CreateWindowExA(xstyle,"CORE_WINDOW_CLASS",title,wstyle,x,y,width,height,parenthwnd,NULL,NULL,NULL);		
+	if (hwnd==NULL) return false;	
 	
-	//Create window
-	HWND parenthwnd = NULL;
-	if (parent!=NULL) parenthwnd = parent->hwnd;
-	hwnd=CreateWindowExA(xstyle,"CORE_WINDOW_CLASS",title,wstyle,x,y,width,height,parenthwnd,NULL,NULL,NULL);
-	if (hwnd==NULL) return false;
-	SetWindowLongA(hwnd,-10,0);
-	SetWindowLongPtrA(hwnd,GWLP_USERDATA,(LONG_PTR)this);
+	if (!(style & CORE_WINDOW_PANEL))
+	{
+		if (style & CORE_WINDOW_ACCEPTFILES) DragAcceptFiles(hwnd,true);
+		if (!(style & CORE_WINDOW_HIDDEN)) ShowWindow(hwnd,1);
+	}
 	
-	//
-	
-	GetWindowRect(hwnd,&rect);
-	GetClientRect(hwnd,&clientrect);
-
-	hdc = GetDC(hwnd);
-	
-	if (!(style & CORE_WINDOW_HIDDEN)) ShowWindow(hwnd,1);
-	//if (style & CORE_WINDOW_ACCEPTFILES) DragAcceptFiles(hwnd,true);
-	
+	SetWindowLongA(hwnd,-10,NULL);
+	this->parent = parent;	
+	UpdateCoords();
+	hdc = GetDC(hwnd);	
+	SetWindowLongPtrA(hwnd,GWLP_USERDATA,(LONG_PTR)this);	
 	return true;
 }
 
-void CoreWindow::Draw()
+void CoreWindow::Draw(int x, int y, int width, int height)
 {
-	if (Callback!=NULL)
+	//Extra checks
+	/*
+	if (parent)
 	{
-		Callback(this,CORE_EVENT_WINDOW_PAINT,0,0);
+		if (GetX()>parent->ClientWidth()) return;
+		if (GetY()>parent->ClientHeight()) return;
 	}
-	else
+	if (GetX()+GetWidth()<=0) return;
+	if (GetY()+GetHeight()<=0) return;
+	*/
+	if (ClientWidth()>0 && ClientHeight()>0)
 	{
-		Clear();
-		if (text!="") this->DrawText(text,2,2,0,0,0);
+		if (Callback!=NULL)
+		{
+			Callback(this,CORE_EVENT_WINDOW_PAINT,x,y,width,height);
+		}
+		else
+		{
+			//Clear();
+			RECT updateregion;
+			updateregion.left=x;
+			updateregion.top=y;
+			updateregion.right = x+width;
+			updateregion.bottom = y+height;
+			FillRect(hdc,&clientrect,bgbrush);
+			if (text!="") this->DrawText(text,2,2,0,0,0);
+		}
 	}
 }
 
@@ -301,6 +329,7 @@ void CoreWindow::SetColor(int r, int g, int b, int bg)
 void CoreWindow::UpdateCoords()
 {
 	GetWindowRect(hwnd,&rect);
+	if (style & CORE_WINDOW_PANEL) MapWindowPoints(HWND_DESKTOP, parent->hwnd, (LPPOINT) &rect, 2);
 	GetClientRect(hwnd,&clientrect);
 }
 
@@ -341,30 +370,37 @@ void CoreWindow::DrawImage(CoreImage* img, int x, int y, int width, int height)
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
+	RECT updateregion;
+	
+	//Extra check
 	if (GetWindowLongA(hwnd,GWLP_USERDATA)!=0)
 	{
 		CoreWindow* window = (CoreWindow*)GetWindowLongPtrA(hwnd,GWLP_USERDATA);
 		switch (message)
 		{
 		case WM_CLOSE:
-			if (window->Callback!=NULL) window->Callback(window,CORE_EVENT_WINDOW_CLOSE,0,0);
+			if (window->Callback!=NULL) window->Callback(window,CORE_EVENT_WINDOW_CLOSE,0,0,0,0);
 			return 0L;
 			break;
 		case WM_SIZE:
 			if (LOWORD(lparam)!=window->rect.right - window->rect.left || HIWORD(lparam)!=window->rect.bottom - window->rect.top)
 			{
 				window->UpdateCoords();
-				if (window->Callback!=NULL) window->Callback(window,CORE_EVENT_WINDOW_SIZE,LOWORD(lparam),HIWORD(lparam));
+				if (window->Callback!=NULL) window->Callback(window,CORE_EVENT_WINDOW_SIZE,LOWORD(lparam),HIWORD(lparam),0,0);
 			}
 			break;
 		case WM_ERASEBKGND:
 			break;
 		case WM_PAINT:
-			PAINTSTRUCT ps;
-			BeginPaint(hwnd,&ps);
-			window->Draw();
-			EndPaint(hwnd,&ps);
-			return 0L;
+			if (GetUpdateRect(hwnd,NULL,false))
+			{
+				GetUpdateRect(hwnd,&updateregion,false);
+				PAINTSTRUCT ps;
+				BeginPaint(hwnd,&ps);
+				window->Draw(updateregion.left,updateregion.top,updateregion.right-updateregion.left,updateregion.bottom-updateregion.top);
+				EndPaint(hwnd,&ps);
+				return 0L;
+			}
 			break;
 		}
 	}

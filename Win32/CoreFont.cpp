@@ -1,4 +1,4 @@
-#include "Core.h"
+#include "..\Core.h"
 
 CoreFont* CoreFont::Default = NULL;
 CoreFont* CoreFont::Status = NULL;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core.h"
+#include "..\Core.h"
 
 class CoreWindow : public CoreObject
 {
@@ -18,10 +18,10 @@ public:
 	CoreWindow* parent;
 	CoreWindow* child;
 	CoreWindow* sibling;
-	void (*Callback)(CoreWindow*,int,int,int);
-	bool issubwindow;
+	void (*Callback)(CoreWindow*,int,int,int,int,int);
 	bool clipmode;
 	int clipregion[4];
+	int style;
 	
 	CoreWindow();
 	virtual ~CoreWindow();
@@ -36,7 +36,7 @@ public:
 	int ClientWidth();
 	int ClientHeight();
 	virtual bool Initialize(char* title, int x, int y, int width, int height, CoreWindow* parent, int style);
-	virtual void Draw();
+	virtual void Draw(int x, int y, int width, int height);
 	void Clear();
 	virtual void UpdateCoords();
 	void SetColor(int r, int g, int b, int bg);
